@@ -1,0 +1,32 @@
+const DeepSpeech = require('deepspeech');
+const fs = require('fs');
+const { execSync } = require('child_process');
+
+// Load the model files
+const modelPath = 'deepspeech-0.9.3-models.pbmm';
+const scorerPath = 'deepspeech-0.9.3-models.scorer';
+const model = new DeepSpeech.Model(modelPath);
+model.enableExternalScorer(scorerPath);
+
+// Convert the MP3 file to WAV format
+const mp3File = 'E:/Activity_1/mp4_to_mp3/audio/audio_3.mp3';
+const wavFile = 'E:/Activity_1/mp4_to_mp3/audio/audio_3.wav';
+try {
+  execSync(`ffmpeg -i ${mp3File} -acodec pcm_s16le -ar 16000 ${wavFile}`);
+} catch (error) {
+  console.error(`Error converting MP3 file to WAV format: ${error.message}`);
+  process.exit(1);
+}
+
+// Load the audio file
+const audioBuffer = fs.readFileSync(wavFile);
+const audioData = new Int16Array(audioBuffer.buffer);
+
+const result = model.stt(audioData);
+
+// Save the transcription to a file at a specified path
+const outputPath = 'E:/Activity_1/mp4_to_mp3/transcription/transcription_1.txt';
+fs.writeFileSync(outputPath, result);
+
+console.log(`Transcription saved to ${outputPath}`);
+
